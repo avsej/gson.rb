@@ -15,8 +15,19 @@
 # limitations under the License.
 #
 
-require "bundler/gem_tasks"
+gem 'rake-compiler', '>= 0.7.5'
+require "rake/javaextensiontask"
 
-Dir['tasks/*.rake'].sort.each { |f| load f }
+def gemspec
+  @clean_gemspec ||= eval(File.read(File.expand_path('../../gson.gemspec', __FILE__)))
+end
 
-task :default => :compile
+Rake::JavaExtensionTask.new('gson_ext', gemspec) do |ext|
+  ext.classpath = File.expand_path("../../lib/gson-2.2.2.jar", __FILE__)
+end
+
+require 'rubygems/package_task'
+Gem::PackageTask.new(gemspec) do |pkg|
+  pkg.need_tar = true
+end
+

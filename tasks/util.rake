@@ -16,6 +16,6 @@
 #
 
 desc 'Start an irb session and load the library.'
-task :console do
-  exec "irb -I lib -rgson"
+task :console => :compile do
+  exec "irb -I. -Ilib -rgson"
 end

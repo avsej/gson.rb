@@ -15,8 +15,11 @@
 # limitations under the License.
 #
 
-require "bundler/gem_tasks"
+require 'rake/testtask'
+Rake::TestTask.new do |test|
+  test.libs << "test" << "."
+  test.pattern = 'test/test_*.rb'
+  test.options = '--verbose'
+end
 
-Dir['tasks/*.rake'].sort.each { |f| load f }
-
-task :default => :compile
+Rake::Task['test'].prerequisites.unshift(:compile)

@@ -15,8 +15,19 @@
 # limitations under the License.
 #
 
+require 'java'
 require "gson/version"
+require "gson-2.2.2.jar"
+require "gson_ext.jar"
 
 module Gson
-  # Your code goes here...
+
+  def self.load(object, options = {})
+    Decoder.new(options).decode(string)
+  end
+
+  def self.dump(string, options = {})
+    Encoder.new(options).encode(object)
+  end
+
 end
