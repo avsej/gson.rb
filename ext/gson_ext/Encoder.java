@@ -175,6 +175,10 @@ public class Encoder extends RubyObject {
             writer.value(val.isTrue());
         } else if (val.respondsTo("as_json")) {
             encodeValue(writer, context, val.callMethod(context, "as_json", this.options));
+        } else if (val.respondsTo("to_s")) {
+            writer.value(val.toString());
+        } else {
+            writer.value(val.anyToString().toString());
         }
     }
 

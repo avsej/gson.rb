@@ -118,4 +118,25 @@ EOJ
     assert_equal expected, encoder.encode(Custom.new(1, 2))
   end
 
+  def test_it_converts_unknown_objects_to_string
+      time = Time.at(1355218745).utc
+
+      # time does not respond to to_json method
+      def time.respond_to?(method, *args)
+        return false if method == :to_json
+        super
+      end
+
+      encoder = Gson::Encoder.new
+      decoder = Gson::Decoder.new
+
+      dumped_json = encoder.encode(time)
+      expected = if RUBY_VERSION > '1.9'
+                   '2012-12-11 09:39:05 UTC'
+                 else
+                   'Tue Dec 11 09:39:05 UTC 2012'
+                 end
+      assert_equal(expected, decoder.decode(dumped_json))
+  end
+
 end
