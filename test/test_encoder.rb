@@ -99,4 +99,23 @@ EOJ
     end
   end
 
+  class Custom
+    attr_accessor :foo, :bar
+
+    def initialize(foo, bar)
+      @foo = foo
+      @bar = bar
+    end
+
+    def as_json(options = {})
+      {:foo => @foo, :bar => @bar}
+    end
+  end
+
+  def test_it_dumps_custom_objects_wich_implement_as_json
+    encoder = Gson::Encoder.new
+    expected = '{"foo":1,"bar":2}'
+    assert_equal expected, encoder.encode(Custom.new(1, 2))
+  end
+
 end

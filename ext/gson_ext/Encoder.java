@@ -75,8 +75,8 @@ public class Encoder extends RubyObject {
     @JRubyMethod(optional = 1)
     public IRubyObject initialize(ThreadContext context, IRubyObject[] args) {
         Ruby ruby = context.getRuntime();
-        this.options = context.nil;
-        if (args.length < 1) {
+        if (args.length < 1 || args[0].isNil()) {
+            this.options = RubyHash.newHash(ruby);
             return context.nil;
         }
         if (!(args[0] instanceof RubyHash)) {
@@ -173,8 +173,8 @@ public class Encoder extends RubyObject {
             writer.value((Double)((RubyFloat)val).getDoubleValue());
         } else if (val instanceof RubyBoolean) {
             writer.value(val.isTrue());
-        } else if (val.respondsTo("to_json")) {
-            encodeValue(writer, context, val.callMethod(context, "to_json", this.options));
+        } else if (val.respondsTo("as_json")) {
+            encodeValue(writer, context, val.callMethod(context, "as_json", this.options));
         }
     }
 
