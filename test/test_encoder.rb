@@ -139,4 +139,11 @@ EOJ
       assert_equal(expected, decoder.decode(dumped_json))
   end
 
+  def test_it_supports_output_streams
+    encoder = Gson::Encoder.new
+    expected = '{"foo":1,"bar":2}'
+    output = StringIO.new
+    encoder.encode({:foo => 1, :bar => 2}, output)
+    assert_equal expected, output.string
+  end
 end

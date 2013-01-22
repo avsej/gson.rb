@@ -19,8 +19,8 @@ package gson_ext;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.LinkedList;
@@ -32,7 +32,6 @@ import org.jruby.RubyClass;
 import org.jruby.RubyException;
 import org.jruby.RubyHash;
 import org.jruby.RubyIO;
-import org.jruby.ext.stringio.RubyStringIO;
 import org.jruby.RubyNumeric;
 import org.jruby.RubyObject;
 import org.jruby.RubyString;
@@ -40,9 +39,10 @@ import org.jruby.RubySymbol;
 import org.jruby.anno.JRubyClass;
 import org.jruby.anno.JRubyMethod;
 import org.jruby.exceptions.RaiseException;
+import org.jruby.ext.stringio.RubyStringIO;
+import org.jruby.java.addons.IOJavaAddons;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
-import org.jruby.java.addons.IOJavaAddons;
 
 @JRubyClass(name = "Gson::Decoder")
 public class Decoder extends RubyObject {

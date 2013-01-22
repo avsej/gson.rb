@@ -23,6 +23,14 @@ Or install it yourself as:
     Gson::Encoder.new.encode({"abc" => [123, -456.789]})
     => "{\"abc\":[123,-456.789]}"
 
+`Gson::Decoder#decode` also accept optional IO or StringIO object:
+
+    File.open("/tmp/gson.json", "w+") do |io|
+      Gson::Encoder.new.encode({"foo" => "bar"}, io)
+    end
+    File.read("/tmp/gson.json")
+    => "{\"foo\":\"bar\"}"
+
 Additional encoder options:
 
 * `:html_safe`, default `false`, force encoder to wrte JSON that is

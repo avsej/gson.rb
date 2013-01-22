@@ -17,26 +17,32 @@
 package gson_ext;
 
 import com.google.gson.stream.JsonWriter;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.StringWriter;
 import java.io.Writer;
-import java.io.IOException;
 import org.jruby.Ruby;
 import org.jruby.RubyArray;
 import org.jruby.RubyBoolean;
 import org.jruby.RubyClass;
 import org.jruby.RubyException;
-import org.jruby.RubyHash;
-import org.jruby.RubyNumeric;
 import org.jruby.RubyFloat;
+import org.jruby.RubyHash;
+import org.jruby.RubyIO;
 import org.jruby.RubyInteger;
+import org.jruby.RubyNumeric;
 import org.jruby.RubyObject;
 import org.jruby.RubyString;
 import org.jruby.RubySymbol;
 import org.jruby.anno.JRubyClass;
 import org.jruby.anno.JRubyMethod;
 import org.jruby.exceptions.RaiseException;
+import org.jruby.ext.stringio.RubyStringIO;
+import org.jruby.java.addons.IOJavaAddons;
 import org.jruby.runtime.ThreadContext;
 import org.jruby.runtime.builtin.IRubyObject;
+import org.jruby.util.IOOutputStream;
 
 @JRubyClass(name = "Gson::Encoder")
 public class Encoder extends RubyObject {
@@ -118,23 +124,38 @@ public class Encoder extends RubyObject {
 
     }
 
-
-    @JRubyMethod
-    public IRubyObject encode(ThreadContext context, IRubyObject arg) {
+    @JRubyMethod(required = 1, optional = 1)
+    public IRubyObject encode(ThreadContext context, IRubyObject[] args) {
         Ruby ruby = context.getRuntime();
+        Writer out = null;
 
-        StringWriter out = new StringWriter();
+        if (args.length < 2 || args[1].isNil()) {
+            out = new StringWriter();
+        } else {
+            IRubyObject io = args[1];
+            if ((io instanceof RubyIO) || (io instanceof RubyStringIO)) {
+                IRubyObject stream = IOJavaAddons.AnyIO.any_to_outputstream(context, io);
+                out = new OutputStreamWriter((OutputStream)stream.toJava(OutputStream.class));
+            } else {
+                throw ruby.newArgumentError("Unsupported source. This method accepts IO");
+            }
+        }
+
         JsonWriter writer = new JsonWriter(out);
         writer.setLenient(this.lenient);
         writer.setHtmlSafe(this.htmlSafe);
         writer.setIndent(this.indent);
         writer.setSerializeNulls(this.serializeNulls);
         try {
-            encodeValue(writer, context, arg);
+            encodeValue(writer, context, args[0]);
         } catch (Exception ex) {
             throw EncodeError.newEncodeError(ruby, ex.getMessage());
         }
-        return ruby.newString(out.toString());
+        if (out instanceof StringWriter) {
+            return ruby.newString(out.toString());
+        } else {
+            return context.nil;
+        }
     }
 
     private void encodeValue(JsonWriter writer, ThreadContext context, IRubyObject val)
@@ -180,6 +201,7 @@ public class Encoder extends RubyObject {
         } else {
             writer.value(val.anyToString().toString());
         }
+        writer.flush();
     }
 
 }
