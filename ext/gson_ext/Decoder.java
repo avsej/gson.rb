@@ -100,19 +100,20 @@ public class Decoder extends RubyObject {
     @JRubyMethod
     public IRubyObject decode(ThreadContext context, IRubyObject arg) {
         Ruby ruby = context.getRuntime();
+        RingBuffer buffer = new RingBuffer();
 
-        Reader sourceReader;
         if (arg instanceof RubyString) {
-            sourceReader = new StringReader(arg.toString());
+            buffer.write(arg.toString().toCharArray());
         } else if ((arg instanceof RubyIO) || (arg instanceof RubyStringIO)) {
             IRubyObject stream = IOJavaAddons.AnyIO.any_to_inputstream(context, arg);
-            sourceReader = new InputStreamReader((InputStream)stream.toJava(InputStream.class));
+            buffer.setExternalSource(new InputStreamReader((InputStream)stream.toJava(InputStream.class)));
         } else {
             throw ruby.newArgumentError("Unsupported source. This method accepts String or IO");
         }
+
         LinkedList<IRubyObject> stack = new LinkedList<IRubyObject>();
         LinkedList<IRubyObject> res = new LinkedList<IRubyObject>();
-        JsonReader reader = new JsonReader(sourceReader);
+        JsonReader reader = new JsonReader(buffer.getReader());
         reader.setLenient(this.lenient);
 
         IRubyObject head, key, val;
