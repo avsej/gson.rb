@@ -216,8 +216,7 @@ public class Decoder extends RubyObject {
                 }
             }
         } catch (Exception ex) {
-            throw DecodeError.newDecodeError(ruby, ex.getMessage());
+            throw DecodeError.newDecodeError(ruby, ex.getClass().getName() + ": " + ex.getMessage());
         }
     }
-
 }
