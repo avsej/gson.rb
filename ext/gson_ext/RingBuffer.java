@@ -27,6 +27,7 @@ public class RingBuffer {
     Reader reader;
     Writer writer;
     java.io.Reader alien = null;
+    boolean chunked = false;
 
     public RingBuffer(java.io.Reader externalSource, int capacity) {
         alien = externalSource;
@@ -53,6 +54,14 @@ public class RingBuffer {
 
     public Writer getWriter() {
         return writer;
+    }
+
+    public void setChunked(boolean chunked) {
+        this.chunked = chunked;
+    }
+
+    public boolean isChunked() {
+        return this.chunked;
     }
 
     public void setExternalSource(java.io.Reader externalSource) {

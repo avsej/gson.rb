@@ -51,6 +51,10 @@ public class Decoder extends RubyObject {
     private boolean lenient = true;
     private boolean symbolizeKeys = false;
     private static Pattern floatPattern = Pattern.compile("[.eE]");
+    private RingBuffer buffer = null;
+    private JsonReader reader = null;
+    private LinkedList<IRubyObject> objectStack = new LinkedList<IRubyObject>();
+    private LinkedList<IRubyObject> results = new LinkedList<IRubyObject>();
 
     public Decoder(final Ruby ruby, RubyClass rubyClass) {
         super(ruby, rubyClass);
@@ -61,6 +65,11 @@ public class Decoder extends RubyObject {
         return RubyBoolean.newBoolean(context.getRuntime(), this.lenient);
     }
 
+    @JRubyMethod(name = "chunked?")
+    public IRubyObject isChunked(ThreadContext context) {
+        return RubyBoolean.newBoolean(context.getRuntime(), buffer.isChunked());
+    }
+
     @JRubyMethod(name = "symbolize_keys?")
     public IRubyObject isSymbolizeKeys(ThreadContext context) {
         return RubyBoolean.newBoolean(context.getRuntime(), this.symbolizeKeys);
@@ -69,6 +78,10 @@ public class Decoder extends RubyObject {
     @JRubyMethod(optional = 1)
     public IRubyObject initialize(ThreadContext context, IRubyObject[] args) {
         Ruby ruby = context.getRuntime();
+
+        buffer = new RingBuffer();
+        reader = new JsonReader(buffer.getReader());
+        reader.setLenient(true);
         if (args.length < 1) {
             return context.nil;
         }
@@ -79,11 +92,17 @@ public class Decoder extends RubyObject {
         RubySymbol name = ruby.newSymbol("lenient");
         if (options.containsKey(name)) {
             this.lenient = options.op_aref(context, name).isTrue();
+            reader.setLenient(this.lenient);
         }
         name = ruby.newSymbol("symbolize_keys");
         if (options.containsKey(name)) {
             this.symbolizeKeys = options.op_aref(context, name).isTrue();
         }
+        name = ruby.newSymbol("chunked");
+        if (options.containsKey(name)) {
+            buffer.setChunked(options.op_aref(context, name).isTrue());
+        }
+
         return context.nil;
     }
 
@@ -100,7 +119,6 @@ public class Decoder extends RubyObject {
     @JRubyMethod
     public IRubyObject decode(ThreadContext context, IRubyObject arg) {
         Ruby ruby = context.getRuntime();
-        RingBuffer buffer = new RingBuffer();
 
         if (arg instanceof RubyString) {
             buffer.write(arg.toString().toCharArray());
@@ -111,15 +129,18 @@ public class Decoder extends RubyObject {
             throw ruby.newArgumentError("Unsupported source. This method accepts String or IO");
         }
 
-        LinkedList<IRubyObject> stack = new LinkedList<IRubyObject>();
-        LinkedList<IRubyObject> res = new LinkedList<IRubyObject>();
-        JsonReader reader = new JsonReader(buffer.getReader());
-        reader.setLenient(this.lenient);
-
         IRubyObject head, key, val;
         RubyHash obj;
         RubyArray ary;
         int i;
+        LinkedList<IRubyObject> stack = objectStack;
+        LinkedList<IRubyObject> res = results;
+        if (!buffer.isChunked()) {
+            stack.clear();
+            res.clear();
+            reader = new JsonReader(buffer.getReader());
+            reader.setLenient(this.lenient);
+        }
         try {
             while (true) {
                 JsonToken token = reader.peek();
