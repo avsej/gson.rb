@@ -22,9 +22,7 @@ def gemspec
   @clean_gemspec ||= eval(File.read(File.expand_path('../../gson.gemspec', __FILE__)))
 end
 
-Rake::JavaExtensionTask.new('gson_ext', gemspec) do |ext|
-  ext.classpath = File.expand_path("../../lib/gson-2.2.2.jar", __FILE__)
-end
+Rake::JavaExtensionTask.new('gson_ext', gemspec)
 
 require 'rubygems/package_task'
 Gem::PackageTask.new(gemspec) do |pkg|
