@@ -78,30 +78,29 @@ public class Decoder extends RubyObject {
     @JRubyMethod(optional = 1)
     public IRubyObject initialize(ThreadContext context, IRubyObject[] args) {
         Ruby ruby = context.getRuntime();
+        boolean chunked = false;
 
-        buffer = new RingBuffer();
+        if (args.length >= 1) {
+            if (!(args[0] instanceof RubyHash)) {
+                throw ruby.newArgumentError("expected Hash for options argument");
+            }
+            RubyHash options = (RubyHash)args[0];
+            RubySymbol name = ruby.newSymbol("lenient");
+            if (options.containsKey(name)) {
+                this.lenient = options.op_aref(context, name).isTrue();
+            }
+            name = ruby.newSymbol("symbolize_keys");
+            if (options.containsKey(name)) {
+                this.symbolizeKeys = options.op_aref(context, name).isTrue();
+            }
+            name = ruby.newSymbol("chunked");
+            if (options.containsKey(name)) {
+                chunked = options.op_aref(context, name).isTrue();
+            }
+        }
+        buffer = new RingBuffer(ruby, chunked);
         reader = new JsonReader(buffer.getReader());
-        reader.setLenient(true);
-        if (args.length < 1) {
-            return context.nil;
-        }
-        if (!(args[0] instanceof RubyHash)) {
-            throw ruby.newArgumentError("expected Hash for options argument");
-        }
-        RubyHash options = (RubyHash)args[0];
-        RubySymbol name = ruby.newSymbol("lenient");
-        if (options.containsKey(name)) {
-            this.lenient = options.op_aref(context, name).isTrue();
-            reader.setLenient(this.lenient);
-        }
-        name = ruby.newSymbol("symbolize_keys");
-        if (options.containsKey(name)) {
-            this.symbolizeKeys = options.op_aref(context, name).isTrue();
-        }
-        name = ruby.newSymbol("chunked");
-        if (options.containsKey(name)) {
-            buffer.setChunked(options.op_aref(context, name).isTrue());
-        }
+        reader.setLenient(this.lenient);
 
         return context.nil;
     }

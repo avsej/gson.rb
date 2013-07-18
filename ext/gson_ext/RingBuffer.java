@@ -17,9 +17,14 @@
 package gson_ext;
 
 import java.io.IOException;
+import org.jruby.Ruby;
+import org.jruby.RubyClass;
+import org.jruby.runtime.builtin.IRubyObject;
+import org.jruby.runtime.Block;
 
 public class RingBuffer {
 
+    private static int DEFAULT_CAPACITY = 16;
     char[] data;
     int datalen = 0;
     int rh = 0;
@@ -27,25 +32,41 @@ public class RingBuffer {
     Reader reader;
     Writer writer;
     java.io.Reader alien = null;
-    boolean chunked = false;
+    boolean chunked;
+    Ruby ruby;
+    IRubyObject fiber = null;
 
-    public RingBuffer(java.io.Reader externalSource, int capacity) {
+    public RingBuffer(Ruby ruby, java.io.Reader externalSource, int capacity, boolean chunked) {
+        this.ruby = ruby;
         alien = externalSource;
         data = new char[capacity];
         reader = new Reader(this);
         writer = new Writer(this);
+        this.chunked = chunked;
+        if (chunked) {
+            RubyClass fiberClass = ruby.getClass("Fiber");
+            fiber = fiberClass.newInstance(ruby.getCurrentContext());
+        }
     }
 
-    public RingBuffer(java.io.Reader externalSource) {
-        this(externalSource, 16);
+    public RingBuffer(Ruby ruby, java.io.Reader externalSource, int capacity) {
+        this(ruby, externalSource, capacity, false);
     }
 
-    public RingBuffer(int capacity) {
-        this(null, capacity);
+    public RingBuffer(Ruby ruby, java.io.Reader externalSource) {
+        this(ruby, externalSource, DEFAULT_CAPACITY, false);
     }
 
-    public RingBuffer() {
-        this(null, 16);
+    public RingBuffer(Ruby ruby, boolean chunked) {
+        this(ruby, null, DEFAULT_CAPACITY, chunked);
+    }
+
+    public RingBuffer(Ruby ruby, int capacity) {
+        this(ruby, null, capacity, false);
+    }
+
+    public RingBuffer(Ruby ruby) {
+        this(ruby, null, DEFAULT_CAPACITY, false);
     }
 
     public Reader getReader() {
@@ -54,10 +75,6 @@ public class RingBuffer {
 
     public Writer getWriter() {
         return writer;
-    }
-
-    public void setChunked(boolean chunked) {
-        this.chunked = chunked;
     }
 
     public boolean isChunked() {
