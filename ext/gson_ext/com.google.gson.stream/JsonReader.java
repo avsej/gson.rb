@@ -225,8 +225,11 @@ public class JsonReader implements Closeable {
   private static final int NUMBER_CHAR_EXP_SIGN = 6;
   private static final int NUMBER_CHAR_EXP_DIGIT = 7;
 
+  /* gson.rb customization */
   /** The input JSON. */
-  private final Reader in;
+  private Reader in;
+  //private final Reader in;
+  /* gson.rb customization end */
 
   /** True to accept non-spec compliant JSON */
   private boolean lenient = false;
@@ -273,6 +276,58 @@ public class JsonReader implements Closeable {
   {
     stack[stackSize++] = JsonScope.EMPTY_DOCUMENT;
   }
+
+  /* gson.rb customization */
+  private class InternalStateSnapshot {
+	  private int peeked;
+	  private int[] stack = new int[32];
+	  private int stackSize;
+
+	  public InternalStateSnapshot() {
+	  }
+
+	  public void take() {
+		  peeked = JsonReader.this.peeked;
+
+		  if (stack.length < JsonReader.this.stack.length) {
+			  stack = new int[JsonReader.this.stack.length];
+		  }
+		  System.arraycopy(JsonReader.this.stack, 0, stack, 0, JsonReader.this.stack.length);
+
+		  stackSize = JsonReader.this.stackSize;
+	  }
+
+	  public void release() {
+		  JsonReader.this.peeked = peeked;
+		  System.arraycopy(stack, 0, JsonReader.this.stack, 0, stack.length);
+		  JsonReader.this.stackSize = stackSize;
+	  }
+  }
+
+  private InternalStateSnapshot snapshot = this.new InternalStateSnapshot();
+  private boolean chunkMode = false;
+
+  public void setChunkMode(boolean chunkMode) {
+	  this.chunkMode = chunkMode;
+  }
+
+  public void prepareForBreak() {
+	  snapshot.take();
+  }
+
+  public void recoverAfterBreak(Reader in) {
+	  this.in = in;
+	  snapshot.release();
+	  pos = 0;
+	  limit = 0;
+	  lineNumber = 0;
+	  lineStart = 0;
+  }
+
+  public int getUnreadBufferLength() {
+	  return limit - pos;
+  }
+  /* gson.rb customization end */
 
   /**
    * Creates a new instance that reads a JSON-encoded stream from {@code in}.
@@ -618,6 +673,11 @@ public class JsonReader implements Closeable {
     int length = keyword.length();
     for (int i = 1; i < length; i++) {
       if (pos + i >= limit && !fillBuffer(i + 1)) {
+        /* gson.rb customization */
+        if (chunkMode) {
+          throw syntaxError("Unterminated string");
+        }
+
         return PEEKED_NONE;
       }
       c = buffer[pos + i];
@@ -658,6 +718,11 @@ public class JsonReader implements Closeable {
           return PEEKED_NONE;
         }
         if (!fillBuffer(i + 1)) {
+          /* gson.rb customization */
+          if (chunkMode) {
+            throw syntaxError("Unterminated string");
+          }
+
           break;
         }
         p = pos;
@@ -731,7 +796,7 @@ public class JsonReader implements Closeable {
       pos += i;
       return peeked = PEEKED_LONG;
     } else if (last == NUMBER_CHAR_DIGIT || last == NUMBER_CHAR_FRACTION_DIGIT
-        || last == NUMBER_CHAR_EXP_DIGIT) {
+        || last == NUMBER_CHAR_EXP_DIGIT || last == NUMBER_CHAR_EXP_E) {// gson.rb customization: "|| last == NUMBER_CHAR_EXP_E"
       peekedNumberLength = i;
       return peeked = PEEKED_NUMBER;
     } else {
