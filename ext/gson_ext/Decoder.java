@@ -114,7 +114,11 @@ public class Decoder extends RubyObject {
                 int result = r1.read(cbuf, off, len);
                 if (result < len) {
                     r1Exhausted = true;
-                    return result + r2.read(cbuf, off+result, len-result);
+                    if (result == -1) {
+                        return r2.read(cbuf, off, len);
+                    } else {
+                        return result + r2.read(cbuf, off+result, len-result);
+                    }
                 } else {
                     return result;
                 }
