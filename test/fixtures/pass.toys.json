@@ -1,0 +1,21 @@
+{
+        "total_rows": 2,
+        "rows": [
+          {
+            "id": "buzz",
+            "props": {
+              "humanoid": true,
+              "armed": true
+            },
+            "movies": [1,2,3]
+          },
+          {
+            "id": "barbie",
+            "props": {
+              "humanoid": true,
+              "armed": false
+            },
+            "movies": [2,3]
+          }
+        ]
+      }

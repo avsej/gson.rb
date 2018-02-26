@@ -19,7 +19,7 @@ options = {
 OptionParser.new do |opts|
   opts.banner = "Usage: benchmark.rb [options]"
   opts.on("-t", "--type TYPE", [:decode, :encode, :both], "Type of the operation (default: #{options[:type]}") do |v|
-    options[:verbose] = v
+    options[:type] = v
   end
   opts.on("-n", "--times NUMBER", Integer, "Number of iterations (default: #{options[:times]})") do |v|
     options[:times] = v

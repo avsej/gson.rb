@@ -7,9 +7,9 @@ class TestOkjson < MiniTest::Unit::TestCase
 
   def test_valid
     encoder = Gson::Encoder.new(:lenient => false)
-    decoder = Gson::Decoder.new(:lenient => false)
     files = Dir["#{TEST_DIR}/valid*.json"]
     files.each do |file|
+      decoder = Gson::Decoder.new(:lenient => false)
       there = decoder.decode(File.read(file))
       back = encoder.encode(there)
       assert_equal File.read("#{file}.exp").chomp, back, "#{file} failed"
@@ -26,18 +26,18 @@ class TestOkjson < MiniTest::Unit::TestCase
   end
 
   def test_decode
-    decoder = Gson::Decoder.new(:lenient => false)
     files = Dir["#{TEST_DIR}/decode*.json"]
     files.each do |file|
+      decoder = Gson::Decoder.new(:lenient => false)
       obj = decoder.decode(File.read(file)).inspect
       assert_equal File.read("#{file}.exp").chomp, obj, "#{file} failed"
     end
   end
 
   def test_decode_error
-    decoder = Gson::Decoder.new(:lenient => false)
     files = Dir["#{TEST_DIR}/invalid*.json"]
     files.each do |file|
+      decoder = Gson::Decoder.new(:lenient => false)
       assert_raises(Gson::DecodeError, "#{file} failed") do
         decoder.decode(File.read(file))
       end
