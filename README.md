@@ -2,6 +2,8 @@
 
 Ruby wrapper for [google-gson][1] library
 
+[![Build Status](https://travis-ci.org/avsej/gson.rb.png)][2]
+
 ## Installation
 
 Add this line to your application's Gemfile:
@@ -110,3 +112,4 @@ Additional decoder options:
 5. Create new Pull Request
 
 [1]: https://code.google.com/p/google-gson/
+[2]: https://travis-ci.org/avsej/gson.rb
