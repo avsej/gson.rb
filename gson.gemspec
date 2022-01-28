@@ -28,6 +28,7 @@ Gem::Specification.new do |gem|
   gem.description   = %q{Ruby wrapper for GSON. https://code.google.com/p/google-gson/}
   gem.summary       = %q{Ruby wrapper for GSON}
   gem.homepage      = "https://github.com/avsej/gson.rb"
+  gem.license       = "Apache-2.0"
 
   gem.files         = `git ls-files`.split($/)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
